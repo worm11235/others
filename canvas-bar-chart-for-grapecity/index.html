@@ -1,0 +1,165 @@
+<html>
+    <meta charset="utf-8"/>
+    <head>
+        <title>chart test</title>
+        <script type="text/javascript">
+            var data = new Array([2, 10, 14, 1, 5], [0, 11, 9, 3, 7], [13, 11, 8, 0, 14]);
+            var xLabel = new Array('d1', 'd2', 'd3', 'd4', 'd5');
+            var yLabel = new Array('s1', 's2', 's3');
+            var colorMap = new Array('#ff0000', '#00ff00', '#0000ff', '#7f7f00', '#7f007f', '#007f7f');
+
+            var margin = 10; //边距宽度
+            var textWidth = 40; //y轴文本宽度
+            var textHeight = 20; //x轴文本高度
+            var labelHeight = 20; //
+            function startup() {
+                var mycanvas = document.getElementById('my_canvas');
+                var width = mycanvas.width; //canvas的宽度
+                var height = mycanvas.height - labelHeight; //canvas的高度
+                var ctxWid = width - margin * 2 - textWidth; //折线画图区宽度
+                var ctxHei = height - margin * 2 - textHeight; //折线画图区高度
+
+                var ctx = mycanvas.getContext('2d');
+
+                //画坐标轴
+                ctx.beginPath();
+                ctx.moveTo(margin + textWidth, margin);
+                ctx.lineTo(margin + textWidth, height - margin - textHeight);
+                ctx.lineTo(width - margin, height - margin - textHeight);
+                ctx.stroke();
+                ctx.closePath();
+                for (var i = 0; i < xLabel.length; i++) {
+                    ctx.strokeText(xLabel[i], margin + textWidth + (width - margin * 2 - textWidth)/(xLabel.length + 1) * (i + 1), height - 2 * margin);
+                    console.warn('x:' + (margin + textWidth + (width - margin * 2 - textWidth)/(xLabel.length + 1) * (i + 1)) + ', y:' + (height - 2 * margin) + ', txt:' + xLabel[i]);
+                }
+
+                //画图例
+                var pos = margin + textWidth;
+                var stbk = ctx.strokeStyle;
+                for (var i = 0; i < yLabel.length; i++) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = colorMap[i];
+                    ctx.moveTo(pos, height);
+                    pos += 10;
+                    ctx.lineTo(pos, height);
+                    ctx.stroke();
+                    ctx.closePath();
+                    ctx.strokeStyle = stbk;
+                    ctx.strokeText(yLabel[i], pos, height);
+                    pos += 20;
+                }
+
+                //计算最大和最小值
+                var max = 'null', min = 'null';
+                for (var it1 = 0; it1 < data.length; it1++) {
+                    for (var it2 = 0; it2 < data[it1].length; it2++) {
+                        if ('null' == max) {
+                            max = data[it1][it2];
+                        } else {
+                            max = max > data[it1][it2] ? max : data[it1][it2];
+                        }
+
+                        if ('null' == min) {
+                            min = data[it1][it2];
+                        } else {
+                            min = min < data[it1][it2] ? min : data[it1][it2];
+                        }
+                    }
+                }
+
+                //画y轴坐标
+                var delta = max - min;
+                var obj = getStep(delta, max, min);
+                console.warn(obj);
+                var num = (obj.top - obj.bottom)/obj.step;
+                var lineWidth = ctx.lineWidth;
+                ctx.lineWidth = lineWidth / 2;
+                for (var it=0; it <= num; it++) {
+                    ctx.strokeText(obj.bottom + it * obj.step, margin, height - margin - textHeight-((height - margin * 2 - textHeight)/num*it));
+                    if (it != 0) {
+                        ctx.beginPath();
+                        ctx.moveTo(margin + textWidth, height - margin - textHeight-((height - margin * 2 - textHeight)/num*it));
+                        ctx.lineTo(width - margin, height - margin - textHeight-((height - margin * 2 - textHeight)/num*it));
+                        ctx.stroke();
+                        ctx.closePath();
+                    }
+                }
+
+                //画折线
+                ctx.lineWidth = ctx.lineWidth * 3;
+                for (var it1 = 0; it1 < data.length; it1++) {
+                    ctx.beginPath();
+                    ctx.strokeStyle= colorMap[it1];
+                    ctx.moveTo(margin + textWidth + (width - margin * 2 - textWidth) / (data[it1].length + 1), height - margin - textHeight - ((data[it1][0]-obj.bottom)* (height - margin * 2 - textHeight) / obj.step/num ));
+                    for (var it2 = 1; it2 < data[it1].length; it2++) {
+                        ctx.lineTo(margin + textWidth + (width - margin * 2 - textWidth)/(data[it1].length + 1) * (it2 + 1), height - margin - textHeight - ((data[it1][it2]-obj.bottom)*(height - margin * 2 - textHeight)/obj.step/num));
+                    }
+                    ctx.stroke();
+                    ctx.closePath();
+                }
+            }
+
+            /**
+             * 计算标尺刻度间隔：
+             */
+            function getStep(delta, max, min) {
+                var head;
+                var param = 0;
+                delta = delta *1+"";
+                max = max*1+'';
+                min = min*1+'';
+                var maxd = max, mind = min;
+
+                //计算刻度间隔的数量级
+                if (delta.indexOf('.') > 0) {
+                    if (delta[0] == '0') {
+                        var it = delta.indexOf('.') + 1;
+                        for (; delta[it] == 0; it++);
+                        param = 1 - it;
+                        head = delta[it];
+                    } else {
+                        param = indexOf('.');
+                        head = delta[0];
+                    }
+                } else {
+                    param = delta.length;
+                    head = delta[0];
+                }
+
+                var step = 1;
+
+                head = head * 1 + 2;
+                if (head < 2) {
+                    step = 0.2;
+                } else if (head < 5) {
+                    step = 0.5;
+                } else if (head > 10) {
+                    step = 2;
+                }
+
+                if (param > 0) {
+                    var v = Math.pow(10, param - 1);
+                    step = step * v;
+                    mind = min - min%step;
+                    if (mind > min) {
+                        mind -= step;
+                    }
+                    maxd = max - max%step + step;
+                } else {
+                    var v = Math.pow(10, param);
+                    step = step * v;
+                    mind = min-min%step;
+                    if (mind > min) {
+                        mind -= step;
+                    }
+                    maxd = max-max%step+step;
+                }
+
+                return {'step':step, 'bottom': mind, 'top':maxd};
+            }
+        </script>
+    </head>
+    <body onload="startup()">
+    <div><canvas id="my_canvas" width="440px", height="440px"/></div>
+    </body>
+</html>
