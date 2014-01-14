@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+ <days>d1,d2,d3,d4,d5</days>
+ <sample name="s1">
+  <value day="d1">12</value>
+  <value day="d2">13</value>
+  <value day="d3">15</value>
+  <value day="d4">0</value>
+  <value day="d5">25</value>
+ </sample>
+ <sample name="s2">
+  <value day="d1">16</value>
+  <value day="d2">7</value>
+  <value day="d3">3</value>
+  <value day="d4">9</value>
+  <value day="d5">11</value>
+ </sample>
+ <sample name="s3">
+  <value day="d1">0</value>
+  <value day="d2">12</value>
+  <value day="d3">13</value>
+  <value day="d4">1</value>
+  <value day="d5">1</value>
+ </sample>
+ <sample name="s4">
+  <value day="d1">10</value>
+  <value day="d2">10</value>
+  <value day="d3">10</value>
+  <value day="d4">0</value>
+  <value day="d5">11</value>
+ </sample> 
+</data>
